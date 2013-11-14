@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <script src="streams.js"></script>
+    <script src="prolog_parse.js"></script>
+    <script src="prolog.js"></script>
+    <script>
+      function run() {
+        var programText = document.getElementById("program").value;
+        var queryText = document.getElementById("query").value;
+        program = parser.parse(programText);
+        var query = parser.parse(queryText, "termList");
+        var frames = qEval(query,S.singleton({}));
+        if (frames) {
+            console.log(prettyFrameStream(frames));
+        }
+        else {
+            console.log("no");
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <textarea id="program" cols="80" rows="20">
+male(adam).
+male(abel).
+male(cain).
+female(eve).
+parent(adam,abel).
+parent(eve,abel).
+parent(adam,cain).
+parent(eve,cain).
+son(X,Y) :- parent(Y,X).
+    </textarea>
+    <br>
+    <input type="text" id="query" value="son(abel, X)" length="80" size="80">
+    <input type="button" value="Run" onclick="run();">
+  </body>
+</html>
