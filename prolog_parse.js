@@ -810,9 +810,21 @@ var parser = (function(){
         }
         if (result0 !== null) {
           result0 = (function(offset, head, rest, tail) {
-                return {"term": "list",
-                        "elems": [head].concat(rest),
-                        "tail": tail};
+                function consify(elems,tail) {
+                    console.log("consify", elems, tail);
+                    if (elems.length == 0 && tail == "") {
+                        return {"term":"cons", "car":"nil"};
+                    }
+                    if (elems.length == 0) {
+                        return tail;
+                    }
+                    return {"term": "cons",
+                            "car": elems[0],
+                            "cdr": consify(elems.slice(1),tail)
+                           };
+                }
+                
+                return consify([head].concat(rest), tail);
             })(pos0, result0[3], result0[5], result0[7]);
         }
         if (result0 === null) {

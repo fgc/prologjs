@@ -88,22 +88,19 @@ function patternMatch(pat, dat, frame) {
             return patternMatch(cur,dat.subterms[i],prev);
         }, frame);
     }
-    if (pat.term == "list"
-        && dat.term == "list") {
-        if (pat.elems.length == 0 && pat.tail != "") {
-            return patternMatch(pat.tail,{term: "list", elems: dat.elems, tail: dat.tail},frame);
-        }
-        if (pat.elems.length == 0 
-            && dat.elems.length == 0) {
+    if (pat.term == "cons"
+        && dat.term == "cons") {
+        
+        if (pat.car == "nil"
+            && dat.car == "nil") {
             return frame;
         }
-        if (pat.elems.length == 0) {
-            return "fail";
-        }
-        var headFrame = patternMatch(pat.elems[0],dat.elems[0],frame);
-        return patternMatch({term: "list", elems:pat.elems.slice(1),tail:pat.tail},
-                            {term: "list", elems:dat.elems.slice(1),tail:dat.tail},
-                            headFrame);
+        var carFrame = patternMatch(pat.car,
+                                    dat.car,
+                                    frame);
+        return patternMatch(pat.cdr,
+                            dat.cdr,
+                            carFrame);
     }
     return "fail";
 }
@@ -168,11 +165,14 @@ function renameVars(rule) {
                 subterms: term.subterms.map(function(t){return treeWalk(t);})
             };
         }
-        if (term.term == "list") {
+        if (term.term == "cons") {
+            if (term.car=="nil") {
+                return term;
+            }
             return {
-                term: "list",
-                elems: term.elems.map(function(t){return treeWalk(t);}),
-                tail: treeWalk(term.tail)
+                term: "cons",
+                car: treeWalk(term.car),
+                tail: treeWalk(term.cdr)
             }
         }
     }
@@ -206,26 +206,14 @@ function unifyMatch(pattern1, pattern2, frame) {
             return unifyMatch(cur,pattern2.subterms[i],prev);
         }, frame);
     }
-    if (pattern1.term == "list"
-        && pattern2.term == "list") {
+    if (pattern1.term == "cons"
+        && pattern2.term == "cons") {
         console.log("unifying", pattern1, pattern2);
-        if (pattern1.elems.length == 0 && pattern1.tail != "") {
-            return patternMatch(pattern1.tail,{term: "list", elems: pattern2.elems, tail: pattern2.tail},frame);
-        }
-        if (pattern2.elems.length == 0 && pattern2.tail != "") {
-            return patternMatch(pattern2.tail,{term: "list", elems: pattern1.elems, tail: pattern1.tail},frame);
-        }
-        if (pattern1.elems.length == 0 
-            && pattern2.elems.length == 0) {
+        if (pattern1.car = "nil" && pattern2.car == "nil") {
             return frame;
         }
-        if (pattern1.elems.length == 0) {
-            return "fail";
-        }
-        var headFrame = patternMatch(pattern1.elems[0],pattern2.elems[0],frame);
-        return patternMatch({term: "list", elems:pattern1.elems.slice(1),tail:pattern1.tail},
-                            {term: "list", elems:pattern2.elems.slice(1),tail:pattern2.tail},
-                            headFrame);
+        var carFrame = unifyMatch(pattern1.car, pattern2.car, frame);
+        return unifyMatch(pattern1.cdr, pattern2.cdr, carFrame);
     }
 
     return "fail";
@@ -265,9 +253,11 @@ function dependsOn(term, variable, frame) {
             return term.subterms.reduce(function(found,st) {
                 return found || treeWalk(st);}, false);
         }
-        if (term.term == "list") {
-            return treeWalk(term.tail) || term.elems.reduce(function(found,st) {
-                return found || treeWalk(st);}, false);
+        if (term.term == "cons") {
+            if(term.car == "nil") {
+                return false;
+            }
+            return treeWalk(term.car) || treeWalk(term.cdr);
         }
         return false;
     }
