@@ -2,10 +2,8 @@ var S = (function () {
 
     var s = {};
 
-    s.empty = undefined; 
-
     s.isNull = function(stream) {
-        return stream == s.empty;
+        return stream.head == undefined;
     };
 
     s.cons = function(head, tail) {
@@ -15,10 +13,12 @@ var S = (function () {
     s.Cons = function(head, tail) {
         this.head = head;
         this.tail = tail;
-    }
+    };
+
+    s.empty = s.cons(undefined,undefined);
 
     s.car = function(stream) {
-        if(s.isNull(stream)) { 
+        if(s.isNull(stream)) {
             return s.empty;
         }
         return stream.head;
@@ -35,11 +35,11 @@ var S = (function () {
             already_run = true;
             result = proc();
             return result;
-        }
+        };
     }
-    
+
     s.cdr = function(stream) {
-        if(s.isNull(stream)) { 
+        if(s.isNull(stream)) {
             return s.empty;
         }
         return (memoize(stream.tail))();
@@ -48,12 +48,12 @@ var S = (function () {
 
     s.singleton = function(value) {
         return s.cons(value, function() {
-            return s.empty
+            return s.empty;
         });
     };
 
     s.range = function(low, high, step) {
-        if(low >= high) { 
+        if(low >= high) {
             return s.empty;
         }
         return s.cons(low, function() {
@@ -62,16 +62,16 @@ var S = (function () {
     };
 
     s.forceLog = function(stream) {
-        if(s.isNull(stream)) { 
+        if(s.isNull(stream)) {
             return;
         }
-        console.log(stream.car())
+        console.log(stream.car());
         s.forceLog(stream.cdr());
     };
     s.Cons.prototype.forceLog = function() { return s.forceLog(this);};
 
     s.map = function(proc, stream) {
-        if(s.isNull(stream)) { 
+        if(s.isNull(stream)) {
             return s.empty;
         }
         return s.cons(proc(stream.car()), function() {
@@ -82,7 +82,7 @@ var S = (function () {
     s.Cons.prototype.map = function(proc) {return s.map(proc,this);};
 
     s.filter = function(pred, stream) {
-        if(s.isNull(stream)) { 
+        if(s.isNull(stream)) {
             return s.empty;
         }
         return pred(stream.car())
@@ -94,7 +94,7 @@ var S = (function () {
     s.Cons.prototype.filter = function(pred) { return s.filter(pred, this);};
 
     s.take = function(n, stream) {
-        if(s.isNull(stream)) { 
+        if(s.isNull(stream)) {
             return s.empty;
         }
         if (n == 0) {
@@ -116,14 +116,14 @@ var S = (function () {
     s.Cons.prototype.drop = function(n) { return s.drop(n, this);};
 
     s.ordermerge = function(stream1, stream2) {
-        if(s.isNull(stream1)) { 
+        if(s.isNull(stream1)) {
             return stream2;
         }
-        
-        if(s.isNull(stream2)) { 
+
+        if(s.isNull(stream2)) {
             return stream1;
         }
-        
+
         var s1car = stream1.car();
         var s2car = stream2.car();
         if (s1car < s2car) {
@@ -131,23 +131,23 @@ var S = (function () {
                 return s.ordermerge(stream1.cdr(), stream2);
             });
         }
-        
+
         if (s1car > s2car) {
             return s.cons(s2car, function() {
                 return s.ordermerge(stream1, stream2.cdr());
             });
-            
+
         }
-        
+
         return s.cons(s1car, function() {
             return s.ordermerge(stream1.cdr(), stream2.cdr());
         });
-    }
+    };
 
     s.Cons.prototype.ordermerge = function(s2) { return s.ordermerge(this, s2);};
 
     s.interleave = function(stream1, stream2) {
-        if(s.isNull(stream1)) { 
+        if(s.isNull(stream1)) {
             return stream2;
         }
         return s.cons(stream1.car(), function() {
@@ -159,7 +159,7 @@ var S = (function () {
     s.comma = function(stream1, stream2) {
         return s.cons([stream1.car(),stream2.car()], function() {
             return s.interleave(stream2.cdr().map(function(x){
-                return [stream1.car(), x]
+                return [stream1.car(), x];
             }),s.comma(stream1.cdr(),stream2.cdr()));
         });
     };
@@ -167,7 +167,7 @@ var S = (function () {
     s.Cons.prototype.comma = function(s2) { return s.comma(this, s2);};
 
     s.appendDelayed = function(stream1, dStream2) {
-        if(s.isNull(stream1)) { 
+        if(s.isNull(stream1)) {
             return dStream2();
         }
         return s.cons(stream1.car(), function() {
@@ -179,7 +179,7 @@ var S = (function () {
     };
 
     s.interleaveDelayed = function(stream1, dStream2) {
-        if(s.isNull(stream1)) { 
+        if(s.isNull(stream1)) {
             return dStream2();
         }
         return s.cons(stream1.car(), function() {
@@ -213,12 +213,12 @@ var S = (function () {
     }
 
     s.flatMap = function(proc, stream) {
-        if(s.isNull(stream)) { 
+        if(s.isNull(stream)) {
             return s.empty;
         }
         return flattenStream(stream.map(proc));
     };
-    
+
     s.Cons.prototype.flatMap = function(proc) {
         return s.flatMap(proc, this);
     };

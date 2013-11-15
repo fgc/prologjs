@@ -23,8 +23,8 @@ function qEval(query, frameStream) {
 
 function simpleQuery(queryPattern, frameStream) {
     return frameStream.flatMap(function(frame) {
-        return S.appendDelayed(findAssertions(queryPattern, frame),function(){ 
-            return applyRules(queryPattern, frame)
+        return S.appendDelayed(findAssertions(queryPattern, frame),function(){
+            return applyRules(queryPattern, frame);
         });
     });
  }
@@ -49,7 +49,7 @@ function fetchProgram(i) {//TODO organize in tables or so and use the pattern to
     }
     return S.cons(window.program[i],function(){
         return fetchProgram(++i);
-    }); 
+    });
 }
 
 function fetchAssertions() {
@@ -78,9 +78,9 @@ function patternMatch(pat, dat, frame) {
        && dat.term == "constant"
        && pat.value == dat.value) {return frame;}
     if (pat.term == "variable") {
-        return extendIfConsistent(pat, dat, frame)
+        return extendIfConsistent(pat, dat, frame);
     }
-    if (pat.term == "structure" 
+    if (pat.term == "structure"
         && dat.term == "structure"
         && pat.functor == dat.functor
         && pat.arity == pat.arity) {
@@ -90,7 +90,7 @@ function patternMatch(pat, dat, frame) {
     }
     if (pat.term == "cons"
         && dat.term == "cons") {
-        
+
         if (pat.car == "nil"
             && dat.car == "nil") {
             return frame;
@@ -125,7 +125,7 @@ function newRuleApplicationId() {
 }
 
 function makeNewVariable(variable, ruleApplicationId) {
-    return {term:"variable", 
+    return {term:"variable",
             name: variable.name + ruleApplicationId};
 }
 
@@ -173,8 +173,10 @@ function renameVars(rule) {
                 term: "cons",
                 car: treeWalk(term.car),
                 tail: treeWalk(term.cdr)
-            }
+            };
         }
+	console.log("Warning: Unknown term type in renameVars:treeWalk", term, "rule:", rule);
+	return term;
     }
     return {
         term: "rule",
@@ -193,12 +195,12 @@ function unifyMatch(pattern1, pattern2, frame) {
         return frame;
     }
     if (pattern1.term == "variable") {
-        return extendIfPossible(pattern1, pattern2, frame)
+        return extendIfPossible(pattern1, pattern2, frame);
     }
     if (pattern2.term == "variable") {
-        return extendIfPossible(pattern2, pattern1, frame)
+        return extendIfPossible(pattern2, pattern1, frame);
     }
-    if (pattern1.term == "structure" 
+    if (pattern1.term == "structure"
         && pattern2.term == "structure"
         && pattern1.functor == pattern2.functor
         && pattern1.arity == pattern2.arity) {
@@ -209,7 +211,7 @@ function unifyMatch(pattern1, pattern2, frame) {
     if (pattern1.term == "cons"
         && pattern2.term == "cons") {
         console.log("unifying", pattern1, pattern2);
-        if (pattern1.car = "nil" && pattern2.car == "nil") {
+        if (pattern1.car == "nil" && pattern2.car == "nil") {
             return frame;
         }
         var carFrame = unifyMatch(pattern1.car, pattern2.car, frame);
@@ -223,7 +225,7 @@ function unifyMatch(pattern1, pattern2, frame) {
 function extendIfPossible(variable, value, frame) {
     if(frame[variable.name]) {
         return unifyMatch(frame[variable.name], value, frame);
-    } 
+    }
     if (value.term && value.term == "variable") {
         if (frame[value.name]) {
             return unifyMatch(variable, frame[value.name], frame);
@@ -232,7 +234,7 @@ function extendIfPossible(variable, value, frame) {
     if (dependsOn(value, variable, frame)) {
         return "fail";
     }
-    
+
     var newframe = JSON.parse(JSON.stringify(frame)); //UGGG
     newframe[variable.name] = value;
     return newframe;

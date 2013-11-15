@@ -10,7 +10,7 @@
         program = parser.parse(programText);
         var query = parser.parse(queryText, "termList");
         var frames = qEval(query,S.singleton({}));
-        if (frames) {
+        if (!S.isNull(frames)) {
             console.log(prettyFrameStream(frames));
         }
         else {
