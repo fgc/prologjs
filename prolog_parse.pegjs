@@ -1,3 +1,7 @@
+{
+    var procs = {}
+    procs["log"] = log;
+}
 l0 = first:assertion rest:(assertion)* _ {
     return [first].concat(rest);
 }
@@ -17,10 +21,19 @@ rule
     }
 
 term
-    = ","* _ s:structure {return s;}
+    = ","* _ b:bifcall {return b;}
+    / ","* _ s:structure {return s;}
     / ","* _ l:list {return l;}
     / ","* _ c:constant {return {"term":"constant", "value":c};}
     / ","* _ v:variable {return {"term":"variable", "name":v};}
+
+bifcall
+    = _ proc:bif _ "(" _ subterms:termList _ ")" {
+        return {"term":"bif", "proc":procs[proc], "args":subterms};
+    }
+
+bif
+    = "log"
 
 structure
     = _ functor:constant _ "(" _ subterms:termList _ ")" {
@@ -38,12 +51,11 @@ elem
 
 tail = "|" _ v:variable {return {"term":"variable", "name":v};}
 list
-    = _ "[" _ head:elem _ rest:(elem)* _ tail:(tail)?"]" {
+    = _ "[]" {return {"term":"cons", "car":"nil"};}
+
+    / _ "[" _ head:elem _ rest:(elem)* _ tail:(tail)?"]" {
         function consify(elems,tail) {
             console.log("consify", elems, tail);
-            if (elems.length == 0 && tail == "") {
-                return {"term":"cons", "car":"nil"};
-            }
             if (elems.length == 0) {
                 return tail;
             }

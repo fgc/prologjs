@@ -12,20 +12,49 @@ function prettyFrameStream(frameStream) {
     return prettyFrame(frameStream.car()) + "\n" + prettyFrameStream(frameStream.cdr());
 }
 
+function instantiate(exp, frame, unboundVarHandler) {
+    function copy(exp) {
+	if (exp.term == "variable") {
+	    if (frame[exp.name] != undefined) {
+		return copy(frame[exp.name]);
+	    }
+	    else {
+		return unboundVarHandler(exp, frame);
+	    }
+	}
+	if (exp.term == "cons") {
+	    return S.cons(copy(exp.car(),copy(exp.cdr())));
+	}
+	return exp;
+    }
+    return copy(exp);
+}
 
 function qEval(query, frameStream) {
     if (query instanceof Array) {
         return conjoin(query, frameStream);
     }
+    if(query.term == "bif") {
+	return execBif(query,frameStream);
+    }
     return simpleQuery(query, frameStream);
 }
 
+function execBif(bifcall, frameStream) {
+    return frameStream.flatMap(function(frame) {
+	if(execute(bifcall.proc,instantiate(bifcall.args,frame,function(v,f){/*error*/}))) {
+	    return S.singleton(frame);
+	}
+	return S.empty;
+    });
+}
 
 function simpleQuery(queryPattern, frameStream) {
     return frameStream.flatMap(function(frame) {
-        return S.appendDelayed(findAssertions(queryPattern, frame),function(){
-            return applyRules(queryPattern, frame);
-        });
+        return findAssertions(queryPattern, frame)
+	    .appendDelayed(function(){
+		return applyRules(queryPattern, frame);
+            });
     });
  }
 
@@ -34,6 +63,15 @@ function conjoin(conjuncts, frameStream) {
         return frameStream;
     }
     return conjoin(conjuncts.splice(1), qEval(conjuncts[0],frameStream));
+}
+
+function execute(proc, args) {
+    return proc.apply(undefined,args);
+}
+
+function log(term) {
+    console.log("LOG", term);
+    return true;
 }
 
 function findAssertions(pattern, frame) {
@@ -163,6 +201,13 @@ function renameVars(rule) {
                 functor: term.functor,
                 arity:  term.arity,
                 subterms: term.subterms.map(function(t){return treeWalk(t);})
+            };
+        }
+        if (term.term == "bif") {
+            return {
+                term: "bif",
+                proc: term.proc,
+                args: term.args.map(function(t){return treeWalk(t);})
             };
         }
         if (term.term == "cons") {
