@@ -2,6 +2,7 @@
     var procs = {}
     procs["log"] = log;
     procs["unify"] = unify_bif;
+    procs["write"] = write_bif;
 }
 
 program = _ first:assertion rest:(assertion)* _ {
@@ -37,6 +38,7 @@ bifcall
 bif
     = "log"
     / "unify"
+    / "write"
 
 structure
     = _ functor:constant _ "(" _ subterms:termList _ ")" {
@@ -110,7 +112,7 @@ sqchar
     / ctrlchar
 
 atomchar
-    = [^\[\]\.,()'"\\\0-\x1F\x7f]
+    = [^\|\[\]\.,()'"\\\0-\x1F\x7f]
 
 ctrlchar
      =

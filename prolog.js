@@ -86,7 +86,6 @@ function prettyFrameStream(frameStream) {
 function instantiate(exp, frame) {
     function copy(exp) {
 	if (exp.term == "variable") {
-	    //console.log("instantiating var:",exp, frame);
 	    if (frame[exp.name] != undefined) {
 		return copy(frame[exp.name]);
 	    }
@@ -98,7 +97,6 @@ function instantiate(exp, frame) {
 	    return S.cons(copy(exp.car(),copy(exp.cdr())));
 	}
 	if (exp instanceof Array) {
-	    //console.log("instantiating array", exp);
 	    return exp.map(function(e){return copy(e);});
 	}
 
@@ -119,9 +117,6 @@ function qEval(query, frameStream) {
 
 function execBif(bifcall, frameStream) {
     return frameStream.flatMap(function(frame) {
-				   //console.log("execBif", bifcall, frame);
-				   //console.log("iargs",instantiate(bifcall.args,
-				   //				   frame, alert));
 				   return execute(bifcall.proc,
 						  frame,
 						  instantiate(bifcall.args,
@@ -130,7 +125,6 @@ function execBif(bifcall, frameStream) {
 }
 
 function execute(proc, frame, args) {
-    //console.log("EXEC", proc, frame, args);
     return proc.apply(frame,args);
 }
 
@@ -333,7 +327,6 @@ function unifyMatch(pattern1, pattern2, frame) {
     }
     if (pattern1.term == "cons"
         && pattern2.term == "cons") {
-        //console.log("unifying", pattern1, pattern2);
         if (pattern1.car == "nil" && pattern2.car == "nil") {
             return frame;
         }
@@ -398,8 +391,16 @@ function log(term) {
     return S.singleton(this);
 }
 
+function write_bif(term) {
+    if(term.term == "constant") {
+	output(term.value);
+	return S.singleton(this);
+    }
+    console.log("Warning: we can only write out constants so far, you tried to write: ", term);
+    return S.singleton(this);
+}
+
 function unify_bif(p1, p2) {
-    //console.log("unify_bif",p1,p2,this);
     var match = unifyMatch(p1, p2, this);
     if (match == "fail") {
 	return S.empty;
