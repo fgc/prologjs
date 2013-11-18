@@ -1,27 +1,31 @@
 /******************************/
 //SICProlog implementation
 
+function output(text) {
+    var out = document.getElementById("output");
+    out.value += text;
+    out.scrollTop = out.scrollHeight;
+}
+
 function executeQuery(query) {
     function forcePrint(stream) {
 	if(S.isNull(stream)) {
 	    return;
 	}
-	document.getElementById("output").value += stream.car();
+	output(stream.car());
 	forcePrint(stream.cdr());
     }
     var frames = qEval(query[0],S.singleton({}));
     if (!S.isNull(frames)) {
         forcePrint(prettyFrames(queryVars(query[0]), frames));
-	document.getElementById("output").value += "true.\n";
+	output("true.\n\n");
     }
     else {
-        console.log("no");
-	document.getElementById("output").value += "no.\n";
+	output("no.\n\n");
     }
 }
 
 function prettyFrames(queryVars,frameStream) {
-    console.log(queryVars);
     return frameStream.flatMap(function(frame) {
         return queryVars.reduce(function(str,v,i){
 	    var sep = (i>0)?", ":"";
