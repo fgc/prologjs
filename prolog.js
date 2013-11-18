@@ -15,6 +15,7 @@ function prettyFrameStream(frameStream) {
 function instantiate(exp, frame, unboundVarHandler) {
     function copy(exp) {
 	if (exp.term == "variable") {
+	    //console.log("instantiating var:",exp, frame);
 	    if (frame[exp.name] != undefined) {
 		return copy(frame[exp.name]);
 	    }
@@ -25,6 +26,11 @@ function instantiate(exp, frame, unboundVarHandler) {
 	if (exp.term == "cons") {
 	    return S.cons(copy(exp.car(),copy(exp.cdr())));
 	}
+	if (exp instanceof Array) {
+	    //console.log("instantiating array", exp);
+	    return exp.map(function(e){return copy(e);});
+	}
+
 	return exp;
     }
     return copy(exp);
@@ -42,11 +48,17 @@ function qEval(query, frameStream) {
 
 function execBif(bifcall, frameStream) {
     return frameStream.flatMap(function(frame) {
-	if(execute(bifcall.proc,instantiate(bifcall.args,frame,function(v,f){/*error*/}))) {
-	    return S.singleton(frame);
-	}
-	return S.empty;
-    });
+				   //console.log("exec", bifcall, frame);
+				   //console.log("iargs",instantiate(bifcall.args,
+				   //				   frame, alert));
+				   if(execute(bifcall.proc,
+					      instantiate(bifcall.args,
+							  frame,
+							  function(v,f){/*error*/}))) {
+				       return S.singleton(frame);
+				   }
+				   return S.empty;
+			       });
 }
 
 function simpleQuery(queryPattern, frameStream) {
@@ -204,11 +216,12 @@ function renameVars(rule) {
             };
         }
         if (term.term == "bif") {
-            return {
-                term: "bif",
-                proc: term.proc,
-                args: term.args.map(function(t){return treeWalk(t);})
-            };
+	    return {
+		term: term.term,
+		proc: term.proc,
+		args: term.args.map(function(t){return treeWalk(t);})
+
+	    };
         }
         if (term.term == "cons") {
             if (term.car=="nil") {
