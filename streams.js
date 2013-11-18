@@ -62,7 +62,7 @@ var S = (function () {
     };
 
     s.forceLog = function(stream) {
-        if(s.isNull(stream)) {
+	if(s.isNull(stream)) {
             return;
         }
         console.log(stream.car());

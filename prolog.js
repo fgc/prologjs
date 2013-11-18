@@ -1,6 +1,73 @@
 /******************************/
 //SICProlog implementation
 
+function executeQuery(query) {
+    function forcePrint(stream) {
+	if(S.isNull(stream)) {
+	    return;
+	}
+	document.getElementById("output").value += stream.car();
+	forcePrint(stream.cdr());
+    }
+    var frames = qEval(query[0],S.singleton({}));
+    if (!S.isNull(frames)) {
+        forcePrint(prettyFrames(queryVars(query[0]), frames));
+	document.getElementById("output").value += "true.\n";
+    }
+    else {
+        console.log("no");
+	document.getElementById("output").value += "no.\n";
+    }
+}
+
+function prettyFrames(queryVars,frameStream) {
+    console.log(queryVars);
+    return frameStream.flatMap(function(frame) {
+        return queryVars.reduce(function(str,v,i){
+	    var sep = (i>0)?", ":"";
+	    return str +
+		   sep +
+		   v.name +
+		   " = " +
+		   instantiate(v,frame).value;
+	    },"") + "\n";
+	});
+}
+
+function queryVars(query) {
+    var varlist = [];
+    function treeWalk(term) {
+        if (term.term == "variable") {
+            varlist.push(term);
+	    return varlist;
+        }
+        if (term.term == "constant") {
+            return varlist;
+        }
+        if (term.term == "structure") {
+            term.subterms.forEach(function(t){treeWalk(t);});
+	    return varlist;
+        }
+        if (term.term == "bif") {
+            return term.args.forEach(function(t){treeWalk(t);});
+        }
+        if (term.term == "cons") {//FIX THIS!
+            if (term.car=="nil") {
+                return varlist;
+            }
+            return {
+                term: "cons",
+                car: treeWalk(term.car),
+                tail: treeWalk(term.cdr)
+            };
+        }
+	console.log("Warning: Unknown term type in queryVars:treeWalk", term, "query:", query);
+	return varlist;
+    }
+
+    return treeWalk(query);
+}
+
 function prettyFrame (frame) {
         return JSON.stringify(frame);
 }
@@ -12,7 +79,7 @@ function prettyFrameStream(frameStream) {
     return prettyFrame(frameStream.car()) + "\n" + prettyFrameStream(frameStream.cdr());
 }
 
-function instantiate(exp, frame, unboundVarHandler) {
+function instantiate(exp, frame) {
     function copy(exp) {
 	if (exp.term == "variable") {
 	    //console.log("instantiating var:",exp, frame);
@@ -20,7 +87,7 @@ function instantiate(exp, frame, unboundVarHandler) {
 		return copy(frame[exp.name]);
 	    }
 	    else {
-		return unboundVarHandler(exp, frame);
+		return exp;
 	    }
 	}
 	if (exp.term == "cons") {
@@ -48,17 +115,19 @@ function qEval(query, frameStream) {
 
 function execBif(bifcall, frameStream) {
     return frameStream.flatMap(function(frame) {
-				   //console.log("exec", bifcall, frame);
+				   //console.log("execBif", bifcall, frame);
 				   //console.log("iargs",instantiate(bifcall.args,
 				   //				   frame, alert));
-				   if(execute(bifcall.proc,
-					      instantiate(bifcall.args,
-							  frame,
-							  function(v,f){/*error*/}))) {
-				       return S.singleton(frame);
-				   }
-				   return S.empty;
+				   return execute(bifcall.proc,
+						  frame,
+						  instantiate(bifcall.args,
+							      frame));
 			       });
+}
+
+function execute(proc, frame, args) {
+    //console.log("EXEC", proc, frame, args);
+    return proc.apply(frame,args);
 }
 
 function simpleQuery(queryPattern, frameStream) {
@@ -77,14 +146,6 @@ function conjoin(conjuncts, frameStream) {
     return conjoin(conjuncts.splice(1), qEval(conjuncts[0],frameStream));
 }
 
-function execute(proc, args) {
-    return proc.apply(undefined,args);
-}
-
-function log(term) {
-    console.log("LOG", term);
-    return true;
-}
 
 function findAssertions(pattern, frame) {
     return fetchAssertions().flatMap(function(datum) {
@@ -204,7 +265,7 @@ function renameVars(rule) {
         if (term.term == "variable") {
             return makeNewVariable(term, ruleApplicationId);
         }
-        if (term.term == "atom") {
+        if (term.term == "constant") {
             return term;
         }
         if (term.term == "structure") {
@@ -268,7 +329,7 @@ function unifyMatch(pattern1, pattern2, frame) {
     }
     if (pattern1.term == "cons"
         && pattern2.term == "cons") {
-        console.log("unifying", pattern1, pattern2);
+        //console.log("unifying", pattern1, pattern2);
         if (pattern1.car == "nil" && pattern2.car == "nil") {
             return frame;
         }
@@ -322,4 +383,22 @@ function dependsOn(term, variable, frame) {
         return false;
     }
     return treeWalk(term);
+}
+
+
+ /*********************
+ * BIF
+ **********************/
+function log(term) {
+    console.log("LOG", term);
+    return S.singleton(this);
+}
+
+function unify_bif(p1, p2) {
+    //console.log("unify_bif",p1,p2,this);
+    var match = unifyMatch(p1, p2, this);
+    if (match == "fail") {
+	return S.empty;
+    }
+    return S.singleton(match);
 }

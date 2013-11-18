@@ -1,8 +1,10 @@
 {
     var procs = {}
     procs["log"] = log;
+    procs["unify"] = unify_bif;
 }
-l0 = first:assertion rest:(assertion)* _ {
+
+program = _ first:assertion rest:(assertion)* _ {
     return [first].concat(rest);
 }
 
@@ -34,6 +36,7 @@ bifcall
 
 bif
     = "log"
+    / "unify"
 
 structure
     = _ functor:constant _ "(" _ subterms:termList _ ")" {
@@ -69,31 +72,55 @@ list
     }
 
 constant
-    = smallConstant / "'" str:string "'" { return str;}
+    = smallConstant / str:string { return str;}
 
 smallConstant
-    = first:lowerCaseLetter rest:(character)* {
+    = first:lowerCaseLetter rest:(atomchar)* {
         return first + rest.join("");
     }
 
 variable
-    = first:upperCaseLetter rest:(character)* {
+    = first:upperCaseLetter rest:(atomchar)* {
         return first + rest.join("");
     }
 
 string
-    = str:(character)+ {
-        return str.join("");
-    }
+    = '"' '"' _ {return "";}
+    / "'" "'" _ {return "";}
+    / "'" chars:(sqchar)+ "'" _ {return chars.join("");}
+    / '"' chars:(dqchar)+ '"' _ {return chars.join("");}
 
 lowerCaseLetter
     = [a-z]
 
 upperCaseLetter
-    = [A-Z]
+    = [A-Z] / "_"
 
-character
-    = lowerCaseLetter / upperCaseLetter / [ ]
+
+dqchar
+    // "any-Unicode-character-except-"-or-\-or-control-character"
+    = [^"\\\0-\x1F\x7f]
+    / '\\"'  { return '"';  }
+    / ctrlchar
+
+sqchar
+    // "any-Unicode-character-except-"-or-\-or-control-character"
+    = [^'\\\0-\x1F\x7f]
+    / "\\'"  { return "'";  }
+    / ctrlchar
+
+atomchar
+    = [^\[\]\.,()'"\\\0-\x1F\x7f]
+
+ctrlchar
+     =
+     / "\\\\" { return "\\"; }
+     / "\\/"  { return "/";  }
+     / "\\b"  { return "\b"; }
+     / "\\f"  { return "\f"; }
+     / "\\n"  { return "\n"; }
+     / "\\r"  { return "\r"; }
+     / "\\t"  { return "\t"; }
 
 whitespace =
     [ \t\n\r]

@@ -4,18 +4,16 @@
     <script src="prolog_parse.js"></script>
     <script src="prolog.js"></script>
     <script>
-      function run() {
+      function consult() {
         var programText = document.getElementById("program").value;
-        var queryText = document.getElementById("query").value;
         program = parser.parse(programText);
-        var query = parser.parse(queryText, "termList");
-        var frames = qEval(query,S.singleton({}));
-        if (!S.isNull(frames)) {
-            console.log(prettyFrameStream(frames));
-        }
-        else {
-            console.log("no");
-        }
+      }
+
+      function run() {
+        var queryText = document.getElementById("query").value;
+	document.getElementById("output").value += queryText + "\n";
+        var query = parser.parse(queryText);
+        executeQuery(query);
       }
     </script>
   </head>
@@ -29,10 +27,14 @@ parent(adam,abel).
 parent(eve,abel).
 parent(adam,cain).
 parent(eve,cain).
+parent(cain, enoch).
 son(X,Y) :- parent(Y,X).
+ancestor(X,Y) :- parent(X,Y).
+ancestor(X,Y) :- parent(Z,Y),ancestor(X,Z).
     </textarea>
-    <br>
-    <input type="text" id="query" value="son(abel, X)" length="80" size="80">
+    <input type="button" value="Consult" onclick="consult();">
+    <textarea id="output" cols="80" rows="20"></textarea>
+    <input type="text" id="query" value="ancestor(A, enoch)." length="80" size="80">
     <input type="button" value="Run" onclick="run();">
   </body>
 </html>
