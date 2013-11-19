@@ -62,18 +62,23 @@ list
 
     / _ "[" _ head:elem _ rest:(elem)* _ tail:(tail)?"]" {
         function consify(elems,tail) {
-            console.log("consify", elems, tail);
             if (elems.length == 0) {
-                return tail;
-            }
-            return {"term": "cons",
-                    "car": elems[0],
-                    "cdr": consify(elems.slice(1),tail)
-                   };
-        }
-        
-        return consify([head].concat(rest), tail);
-    }
+		if(tail == "") {
+		    return {
+			"term": "cons",
+			"car": "nil"};
+		}
+		return tail;
+	    }
+
+        return {"term": "cons",
+                "car": elems[0],
+                "cdr": consify(elems.slice(1),tail)
+               };
+	}
+
+return consify([head].concat(rest), tail);
+}
 
 constant
     = smallConstant 

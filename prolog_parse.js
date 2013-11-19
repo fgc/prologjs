@@ -127,18 +127,23 @@ var parser = (function() {
         peg$c40 = "\"]\"",
         peg$c41 = function(head, rest, tail) {
                 function consify(elems,tail) {
-                    console.log("consify", elems, tail);
                     if (elems.length == 0) {
-                        return tail;
-                    }
-                    return {"term": "cons",
-                            "car": elems[0],
-                            "cdr": consify(elems.slice(1),tail)
-                           };
-                }
-                
-                return consify([head].concat(rest), tail);
-            },
+        		if(tail == "") {
+        		    return {
+        			"term": "cons",
+        			"car": "nil"};
+        		}
+        		return tail;
+        	    }
+
+                return {"term": "cons",
+                        "car": elems[0],
+                        "cdr": consify(elems.slice(1),tail)
+                       };
+        	}
+
+        return consify([head].concat(rest), tail);
+        },
         peg$c42 = function(str) { return str;},
         peg$c43 = function(integer) {return integer;},
         peg$c44 = function(first, rest) {

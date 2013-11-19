@@ -369,15 +369,15 @@ function dependsOn(term, variable, frame) {
             }
             return false; //we didn't find the variable at all
         }
-        if (term.term == "structure") {
-            return term.subterms.reduce(function(found,st) {
+        if (t.term == "structure") {
+            return t.subterms.reduce(function(found,st) {
                 return found || treeWalk(st);}, false);
         }
-        if (term.term == "cons") {
-            if(term.car == "nil") {
+        if (t.term == "cons") {
+            if(t.car == "nil") {
                 return false;
             }
-            return treeWalk(term.car) || treeWalk(term.cdr);
+            return treeWalk(t.car) || treeWalk(t.cdr);
         }
         return false;
     }
