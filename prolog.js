@@ -391,12 +391,15 @@ function log(term) {
     return S.singleton(this);
 }
 
-function write_bif(term) {
-    if(term.term == "constant") {
-	output(term.value);
-	return S.singleton(this);
+function write_bif() {
+    function writeTerm(term) {
+	if(term.term == "constant") {
+	    output(term.value);
+	}
+	console.log("Warning: we can only write out constants so far, you tried to write: ", term);
     }
-    console.log("Warning: we can only write out constants so far, you tried to write: ", term);
+    var terms = Array.prototype.slice.call(arguments);
+    terms.forEach(writeTerm);
     return S.singleton(this);
 }
 
