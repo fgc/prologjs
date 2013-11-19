@@ -60,8 +60,8 @@ function queryVars(query) {
             if (term.car=="nil") {
                 return;
             }
-            treeWalk(term.car());
-            treeWalk(term.cdr());
+            treeWalk(term.car);
+            treeWalk(term.cdr);
 	    return;
 
         }
@@ -92,8 +92,8 @@ function instantiate(exp, frame) {
 		return exp;
 	    }
 	}
-	if (exp.term == "cons") {
-	    return S.cons(copy(exp.car(),copy(exp.cdr())));
+	if (exp.term == "cons" && exp.car != "nil") {
+	    return S.cons(copy(exp.car),copy(exp.cdr));
 	}
 	if (exp instanceof Array) {
 	    return exp.map(function(e){return copy(e);});
@@ -288,7 +288,7 @@ function renameVars(rule) {
             return {
                 term: "cons",
                 car: treeWalk(term.car),
-                tail: treeWalk(term.cdr)
+                cdr: treeWalk(term.cdr)
             };
         }
 	console.log("Warning: Unknown term type in renameVars:treeWalk", term, "rule:", rule);
@@ -302,8 +302,15 @@ function renameVars(rule) {
 }
 
 function unifyMatch(pattern1, pattern2, frame) {
+    console.log("umatch", JSON.stringify(pattern1), JSON.stringify(pattern2), JSON.stringify(frame));
     if (frame == "fail") {
         return "fail";
+    }
+    if (pattern1 == "nil" && pattern2 != "nil") {
+	return "fail";
+    }
+    if (pattern2 == "nil" && pattern1 != "nil") {
+	return "fail";
     }
     if (pattern1.term == "constant"
        && pattern2.term == "constant"
@@ -398,7 +405,10 @@ function write_bif() {
 	if(term.term == "constant") {
 	    output(term.value);
 	}
-	console.log("Warning: we can only write out constants so far, you tried to write: ", term);
+	else {
+	    output("?\n");
+	    console.log("Warning: we can only write out constants so far, you tried to write: ", term);
+	}
     }
     var terms = Array.prototype.slice.call(arguments);
     terms.forEach(writeTerm);
