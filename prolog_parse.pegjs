@@ -3,6 +3,7 @@
     procs["log"] = log;
     procs["unify"] = unify_bif;
     procs["write"] = write_bif;
+    procs["sum"] = sum_bif;
 }
 
 program = _ first:assertion rest:(assertion)* _ {
@@ -39,6 +40,7 @@ bif
     = "log"
     / "unify"
     / "write"
+    / "sum"
 
 structure
     = _ functor:constant _ "(" _ subterms:termList _ ")" {
@@ -74,7 +76,9 @@ list
     }
 
 constant
-    = smallConstant / str:string { return str;}
+    = smallConstant 
+    / str:string { return str;}
+    / integer:integer {return integer;}
 
 smallConstant
     = first:lowerCaseLetter rest:(atomchar)* {
@@ -98,6 +102,10 @@ lowerCaseLetter
 upperCaseLetter
     = [A-Z] / "_"
 
+integer
+    = neg:("-")? digits:digit+ {return parseInt(neg + digits.join(""));}
+digit
+    = [0-9]
 
 dqchar
     // "any-Unicode-character-except-"-or-\-or-control-character"

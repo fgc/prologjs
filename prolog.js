@@ -43,33 +43,33 @@ function queryVars(query) {
     function treeWalk(term) {
         if (term.term == "variable") {
             varlist.push(term);
-	    return varlist;
+	    return;
         }
         if (term.term == "constant") {
-            return varlist;
+            return;
         }
         if (term.term == "structure") {
-            term.subterms.forEach(function(t){treeWalk(t);});
-	    return varlist;
+            term.subterms.map(function(t){treeWalk(t);});
+	    return;
         }
         if (term.term == "bif") {
-            return term.args.forEach(function(t){treeWalk(t);});
+            term.args.forEach(function(t){treeWalk(t);});
+	    return;
         }
         if (term.term == "cons") {//FIX THIS!
             if (term.car=="nil") {
-                return varlist;
+                return;
             }
-            return {
-                term: "cons",
-                car: treeWalk(term.car),
-                tail: treeWalk(term.cdr)
-            };
+            treeWalk(term.car());
+            treeWalk(term.cdr());
+	    return;
+
         }
 	console.log("Warning: Unknown term type in queryVars:treeWalk", term, "query:", query);
-	return varlist;
+	return;
     }
-
-    return treeWalk(query);
+    treeWalk(query);
+    return varlist;
 }
 
 function prettyFrame (frame) {
@@ -82,7 +82,6 @@ function prettyFrameStream(frameStream) {
     }
     return prettyFrame(frameStream.car()) + "\n" + prettyFrameStream(frameStream.cdr());
 }
-
 function instantiate(exp, frame) {
     function copy(exp) {
 	if (exp.term == "variable") {
@@ -325,6 +324,9 @@ function unifyMatch(pattern1, pattern2, frame) {
             return unifyMatch(cur,pattern2.subterms[i],prev);
         }, frame);
     }
+    if (pattern1.term == "bif") {
+	return unifyMatch();
+    }
     if (pattern1.term == "cons"
         && pattern2.term == "cons") {
         if (pattern1.car == "nil" && pattern2.car == "nil") {
@@ -409,4 +411,9 @@ function unify_bif(p1, p2) {
 	return S.empty;
     }
     return S.singleton(match);
+}
+
+function sum_bif(variable,a,b) {
+    console.log("here!");
+    return extendIfConsistent(variable, {term:"constant", value:a.value + b.value}, this);
 }
