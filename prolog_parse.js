@@ -1544,19 +1544,36 @@ var parser = (function() {
     function peg$parsectrlchar() {
       var s0, s1;
 
-      s0 = [];
+      s0 = peg$currPos;
+      if (input.substr(peg$currPos, 2) === peg$c66) {
+        s1 = peg$c66;
+        peg$currPos += 2;
+      } else {
+        s1 = null;
+        if (peg$silentFails === 0) { peg$fail(peg$c67); }
+      }
+      if (s1 !== null) {
+        peg$reportedPos = s0;
+        s1 = peg$c68();
+      }
+      if (s1 === null) {
+        peg$currPos = s0;
+        s0 = s1;
+      } else {
+        s0 = s1;
+      }
       if (s0 === null) {
         s0 = peg$currPos;
-        if (input.substr(peg$currPos, 2) === peg$c66) {
-          s1 = peg$c66;
+        if (input.substr(peg$currPos, 2) === peg$c69) {
+          s1 = peg$c69;
           peg$currPos += 2;
         } else {
           s1 = null;
-          if (peg$silentFails === 0) { peg$fail(peg$c67); }
+          if (peg$silentFails === 0) { peg$fail(peg$c70); }
         }
         if (s1 !== null) {
           peg$reportedPos = s0;
-          s1 = peg$c68();
+          s1 = peg$c71();
         }
         if (s1 === null) {
           peg$currPos = s0;
@@ -1566,16 +1583,16 @@ var parser = (function() {
         }
         if (s0 === null) {
           s0 = peg$currPos;
-          if (input.substr(peg$currPos, 2) === peg$c69) {
-            s1 = peg$c69;
+          if (input.substr(peg$currPos, 2) === peg$c72) {
+            s1 = peg$c72;
             peg$currPos += 2;
           } else {
             s1 = null;
-            if (peg$silentFails === 0) { peg$fail(peg$c70); }
+            if (peg$silentFails === 0) { peg$fail(peg$c73); }
           }
           if (s1 !== null) {
             peg$reportedPos = s0;
-            s1 = peg$c71();
+            s1 = peg$c74();
           }
           if (s1 === null) {
             peg$currPos = s0;
@@ -1585,16 +1602,16 @@ var parser = (function() {
           }
           if (s0 === null) {
             s0 = peg$currPos;
-            if (input.substr(peg$currPos, 2) === peg$c72) {
-              s1 = peg$c72;
+            if (input.substr(peg$currPos, 2) === peg$c75) {
+              s1 = peg$c75;
               peg$currPos += 2;
             } else {
               s1 = null;
-              if (peg$silentFails === 0) { peg$fail(peg$c73); }
+              if (peg$silentFails === 0) { peg$fail(peg$c76); }
             }
             if (s1 !== null) {
               peg$reportedPos = s0;
-              s1 = peg$c74();
+              s1 = peg$c77();
             }
             if (s1 === null) {
               peg$currPos = s0;
@@ -1604,16 +1621,16 @@ var parser = (function() {
             }
             if (s0 === null) {
               s0 = peg$currPos;
-              if (input.substr(peg$currPos, 2) === peg$c75) {
-                s1 = peg$c75;
+              if (input.substr(peg$currPos, 2) === peg$c78) {
+                s1 = peg$c78;
                 peg$currPos += 2;
               } else {
                 s1 = null;
-                if (peg$silentFails === 0) { peg$fail(peg$c76); }
+                if (peg$silentFails === 0) { peg$fail(peg$c79); }
               }
               if (s1 !== null) {
                 peg$reportedPos = s0;
-                s1 = peg$c77();
+                s1 = peg$c80();
               }
               if (s1 === null) {
                 peg$currPos = s0;
@@ -1623,16 +1640,16 @@ var parser = (function() {
               }
               if (s0 === null) {
                 s0 = peg$currPos;
-                if (input.substr(peg$currPos, 2) === peg$c78) {
-                  s1 = peg$c78;
+                if (input.substr(peg$currPos, 2) === peg$c81) {
+                  s1 = peg$c81;
                   peg$currPos += 2;
                 } else {
                   s1 = null;
-                  if (peg$silentFails === 0) { peg$fail(peg$c79); }
+                  if (peg$silentFails === 0) { peg$fail(peg$c82); }
                 }
                 if (s1 !== null) {
                   peg$reportedPos = s0;
-                  s1 = peg$c80();
+                  s1 = peg$c83();
                 }
                 if (s1 === null) {
                   peg$currPos = s0;
@@ -1642,42 +1659,22 @@ var parser = (function() {
                 }
                 if (s0 === null) {
                   s0 = peg$currPos;
-                  if (input.substr(peg$currPos, 2) === peg$c81) {
-                    s1 = peg$c81;
+                  if (input.substr(peg$currPos, 2) === peg$c84) {
+                    s1 = peg$c84;
                     peg$currPos += 2;
                   } else {
                     s1 = null;
-                    if (peg$silentFails === 0) { peg$fail(peg$c82); }
+                    if (peg$silentFails === 0) { peg$fail(peg$c85); }
                   }
                   if (s1 !== null) {
                     peg$reportedPos = s0;
-                    s1 = peg$c83();
+                    s1 = peg$c86();
                   }
                   if (s1 === null) {
                     peg$currPos = s0;
                     s0 = s1;
                   } else {
                     s0 = s1;
-                  }
-                  if (s0 === null) {
-                    s0 = peg$currPos;
-                    if (input.substr(peg$currPos, 2) === peg$c84) {
-                      s1 = peg$c84;
-                      peg$currPos += 2;
-                    } else {
-                      s1 = null;
-                      if (peg$silentFails === 0) { peg$fail(peg$c85); }
-                    }
-                    if (s1 !== null) {
-                      peg$reportedPos = s0;
-                      s1 = peg$c86();
-                    }
-                    if (s1 === null) {
-                      peg$currPos = s0;
-                      s0 = s1;
-                    } else {
-                      s0 = s1;
-                    }
                   }
                 }
               }
@@ -1717,7 +1714,7 @@ var parser = (function() {
     }
 
 
-        var procs = {}
+        var procs = {};
         procs["log"] = log;
         procs["unify"] = unify_bif;
         procs["write"] = write_bif;

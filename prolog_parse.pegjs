@@ -1,5 +1,5 @@
 {
-    var procs = {}
+    var procs = {};
     procs["log"] = log;
     procs["unify"] = unify_bif;
     procs["write"] = write_bif;
@@ -115,8 +115,7 @@ atomchar
     = [^\|\[\]\.,()'"\\\0-\x1F\x7f]
 
 ctrlchar
-     =
-     / "\\\\" { return "\\"; }
+     = "\\\\" { return "\\"; }
      / "\\/"  { return "/";  }
      / "\\b"  { return "\b"; }
      / "\\f"  { return "\f"; }
