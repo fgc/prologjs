@@ -399,7 +399,7 @@ function log(term) {
     return S.singleton(this);
 }
 
-function write_bif() {
+function write_bif(/*args*/) {
     function writeTerm(term) {
 	if(term.term == "constant") {
 	    output(term.value);
@@ -425,4 +425,14 @@ function unify_bif(p1, p2) {
 function sum_bif(variable,a,b) {
     console.log("here!");
     return extendIfConsistent(variable, {term:"constant", value:a.value + b.value}, this);
+}
+
+function not_bif(negatedQuery) {
+    var tryQuery = qEval(negatedQuery,S.singleton(this));
+    if (S.isNull(tryQuery)) {
+	return S.singleton(this);
+    }
+    else {
+	return S.empty;
+    }
 }

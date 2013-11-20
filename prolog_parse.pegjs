@@ -4,6 +4,7 @@
     procs["unify"] = unify_bif;
     procs["write"] = write_bif;
     procs["sum"] = sum_bif;
+    procs["not"] = not_bif;
 }
 
 program = _ first:assertion rest:(assertion)* _ {
@@ -41,6 +42,7 @@ bif
     / "unify"
     / "write"
     / "sum"
+    / "not"
 
 structure
     = _ functor:constant _ "(" _ subterms:termList _ ")" {
