@@ -422,14 +422,35 @@ function unify_bif(p1, p2) {
     return S.singleton(match);
 }
 
-function sum_bif(variable,a,b) {
-    console.log("here!");
+function sum_bif(variable, a, b) {
     return extendIfConsistent(variable, {term:"constant", value:a.value + b.value}, this);
+}
+
+function mul_bif(variable, a, b) {
+    return extendIfConsistent(variable, {term:"constant", value:a.value * b.value}, this);
 }
 
 function not_bif(negatedQuery) {
     var tryQuery = qEval(negatedQuery,S.singleton(this));
     if (S.isNull(tryQuery)) {
+	return S.singleton(this);
+    }
+    else {
+	return S.empty;
+    }
+}
+
+function gt_bif(a,b) {
+    if(a.value > b.value) {
+	return S.singleton(this);
+    }
+    else {
+	return S.empty;
+    }
+}
+
+function lt_bif(a,b) {
+    if(a.value < b.value) {
 	return S.singleton(this);
     }
     else {

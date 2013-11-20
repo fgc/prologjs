@@ -4,7 +4,10 @@
     procs["unify"] = unify_bif;
     procs["write"] = write_bif;
     procs["sum"] = sum_bif;
+    procs["mul"] = mul_bif;
     procs["not"] = not_bif;
+    procs["gt"] = gt_bif;
+    procs["lt"] = lt_bif;
 }
 
 program = _ first:assertion rest:(assertion)* _ {
@@ -42,7 +45,10 @@ bif
     / "unify"
     / "write"
     / "sum"
+    / "mul"
     / "not"
+    / "gt"
+    / "lt"
 
 structure
     = _ functor:constant _ "(" _ subterms:termList _ ")" {
