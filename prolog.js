@@ -302,7 +302,6 @@ function renameVars(rule) {
 }
 
 function unifyMatch(pattern1, pattern2, frame) {
-    console.log("umatch", JSON.stringify(pattern1), JSON.stringify(pattern2), JSON.stringify(frame));
     if (frame == "fail") {
         return "fail";
     }
