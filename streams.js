@@ -2,10 +2,6 @@ var S = (function () {
 
     var s = {};
 
-    s.isNull = function(stream) {
-        return stream.head == undefined;
-    };
-
     s.cons = function(head, tail) {
         return new s.Cons(head,tail);
     };
@@ -16,6 +12,11 @@ var S = (function () {
     };
 
     s.empty = s.cons(undefined,undefined);
+
+    s.isNull = function(stream) {
+        return stream.head == undefined;
+    };
+    s.Cons.prototype.isNull = function() {return s.isNull(this);};
 
     s.car = function(stream) {
         if(s.isNull(stream)) {
@@ -198,7 +199,7 @@ var S = (function () {
         if(s.isNull(stream)) {
             return s.empty;
         }
-        scar = stream.car();
+        var scar = stream.car();
         if (scar && scar.interleaveDelayed) {
             return stream.car().interleaveDelayed(function(){
                 return flattenStream(stream.cdr());

@@ -10,6 +10,7 @@ function output(text) {
 function executeQuery(query) {
     function forcePrint(stream) {
 	if(S.isNull(stream)) {
+	    output("no.\n\n");
 	    return;
 	}
 	output(stream.car());
@@ -17,8 +18,12 @@ function executeQuery(query) {
     }
     var frames = qEval(query[0],S.singleton({}));
     if (!S.isNull(frames)) {
-        forcePrint(prettyFrames(queryVars(query[0]), frames));
+	var vars = queryVars(query[0]);
+	if (vars.length == 0) {
 	output("true.\n\n");
+	} else {
+        forcePrint(prettyFrames(vars, frames));
+	}
     }
     else {
 	output("no.\n\n");
@@ -34,7 +39,7 @@ function prettyFrames(queryVars,frameStream) {
 		   v.name +
 		   " = " +
 		   instantiate(v,frame).value;
-	    },"") + "\n";
+	    },"") + ";\n";
 	});
 }
 
@@ -239,7 +244,7 @@ function makeNewVariable(variable, ruleApplicationId) {
 
 function applyRules(pattern, frame) {
     var rules = fetchRules();
-    if (!rules) {
+    if (rules.isNull()) {
         return S.empty;
     }
     return rules.flatMap(function(rule){
