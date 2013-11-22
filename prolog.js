@@ -38,9 +38,26 @@ function prettyFrames(queryVars,frameStream) {
 		   sep +
 		   v.name +
 		   " = " +
-		   instantiate(v,frame).value;
+		   prettyTerm(instantiate(v,frame));
 	    },"") + ";\n";
 	});
+}
+
+function prettyTerm(term) {
+    if (term.term == "constant") {
+	return term.value;
+    }
+    if (term.term == "cons") {
+	return prettyList(term, "[");
+    }
+    return JSON.stringify(term);
+}
+
+function prettyList(list, str) {
+    if (list.car == "nil") {
+	return str.slice(0,-2) + "]";
+    }
+    return prettyList(list.cdr, str + prettyTerm(list.car) + ", ");
 }
 
 function queryVars(query) {
@@ -87,6 +104,7 @@ function prettyFrameStream(frameStream) {
     }
     return prettyFrame(frameStream.car()) + "\n" + prettyFrameStream(frameStream.cdr());
 }
+
 function instantiate(exp, frame) {
     function copy(exp) {
 	if (exp.term == "variable") {
@@ -98,7 +116,11 @@ function instantiate(exp, frame) {
 	    }
 	}
 	if (exp.term == "cons" && exp.car != "nil") {
-	    return S.cons(copy(exp.car),copy(exp.cdr));
+	    return {
+		term: "cons",
+		car: copy(exp.car),
+		cdr: copy(exp.cdr)
+	    };
 	}
 	if (exp instanceof Array) {
 	    return exp.map(function(e){return copy(e);});
@@ -461,4 +483,9 @@ function lt_bif(a,b) {
     else {
 	return S.empty;
     }
+}
+
+function cons_bif(variable, h, t) {
+    return extendIfConsistent(variable, {term:"cons", car:h, cdr:t}, this);
+
 }

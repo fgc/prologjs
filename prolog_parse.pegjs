@@ -2,12 +2,18 @@
     var procs = {};
     procs["log"] = log;
     procs["unify"] = unify_bif;
+    procs["="] = unify_bif;
     procs["write"] = write_bif;
     procs["sum"] = sum_bif;
+    procs["+"] = sum_bif;
     procs["mul"] = mul_bif;
+    procs["*"] = mul_bif;
     procs["not"] = not_bif;
     procs["gt"] = gt_bif;
     procs["lt"] = lt_bif;
+    procs[">"] = gt_bif;
+    procs["<"] = lt_bif;
+    procs["cons"] = cons_bif;
 }
 
 program = _ first:assertion rest:(assertion)* _ {
@@ -49,6 +55,12 @@ bif
     / "not"
     / "gt"
     / "lt"
+    / "cons"
+    / "="
+    / "+"
+    / "*"
+    / ">"
+    / "<"
 
 structure
     = _ functor:constant _ "(" _ subterms:termList _ ")" {
@@ -61,8 +73,9 @@ termList
     }
 
 elem
-   = ","* _ c:constant {return {"term":"constant", "value":c};}
-    / ","* _ v:variable {return {"term":"variable", "name":v};}     
+    = ","* _ c:constant {return {"term":"constant", "value":c};}
+    / ","* _ v:variable {return {"term":"variable", "name":v};}    
+    / ","* _ l:list{return l;}
 
 tail = "|" _ v:variable {return {"term":"variable", "name":v};}
 list
