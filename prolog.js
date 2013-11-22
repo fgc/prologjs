@@ -7,29 +7,6 @@ function output(text) {
     out.scrollTop = out.scrollHeight;
 }
 
-function executeQuery(query) {
-    function forcePrint(stream) {
-	if(S.isNull(stream)) {
-	    output("no.\n\n");
-	    return;
-	}
-	output(stream.car());
-	forcePrint(stream.cdr());
-    }
-    var frames = qEval(query[0],S.singleton({}));
-    if (!S.isNull(frames)) {
-	var vars = queryVars(query[0]);
-	if (vars.length == 0) {
-	output("true.\n\n");
-	} else {
-        forcePrint(prettyFrames(vars, frames));
-	}
-    }
-    else {
-	output("no.\n\n");
-    }
-}
-
 function prettyFrames(queryVars,frameStream) {
     return frameStream.flatMap(function(frame) {
         return queryVars.reduce(function(str,v,i){
@@ -87,7 +64,10 @@ function queryVars(query) {
 	    return;
 
         }
-	console.log("Warning: Unknown term type in queryVars:treeWalk", term, "query:", query);
+	console.log("Warning: Unknown term type in queryVars:treeWalk",
+	    term,
+	    "query:",
+	    query);
 	return;
     }
     treeWalk(query);
@@ -102,7 +82,8 @@ function prettyFrameStream(frameStream) {
     if (S.isNull(frameStream)) {
         return "true";
     }
-    return prettyFrame(frameStream.car()) + "\n" + prettyFrameStream(frameStream.cdr());
+    return prettyFrame(frameStream.car()) + "\n" +
+	   prettyFrameStream(frameStream.cdr());
 }
 
 function instantiate(exp, frame) {
@@ -131,6 +112,29 @@ function instantiate(exp, frame) {
     return copy(exp);
 }
 
+function executeQuery(query) {
+    function forcePrint(stream) {
+	if(S.isNull(stream)) {
+	    output("no.\n\n");
+	    return;
+	}
+	output(stream.car());
+	forcePrint(stream.cdr());
+    }
+    var frames = qEval(query[0],S.singleton({}));
+    if (!S.isNull(frames)) {
+	var vars = queryVars(query[0]);
+	if (vars.length == 0) {
+	output("true.\n\n");
+	} else {
+        forcePrint(prettyFrames(vars, frames));
+	}
+    }
+    else {
+	output("no.\n\n");
+    }
+}
+
 function qEval(query, frameStream) {
     if (query instanceof Array) {
         return conjoin(query, frameStream);
@@ -143,15 +147,9 @@ function qEval(query, frameStream) {
 
 function execBif(bifcall, frameStream) {
     return frameStream.flatMap(function(frame) {
-				   return execute(bifcall.proc,
-						  frame,
-						  instantiate(bifcall.args,
-							      frame));
-			       });
-}
-
-function execute(proc, frame, args) {
-    return proc.apply(frame,args);
+	return bifcall.proc.apply(frame,
+				  instantiate(bifcall.args, frame));
+	});
 }
 
 function simpleQuery(queryPattern, frameStream) {
@@ -177,7 +175,7 @@ function findAssertions(pattern, frame) {
     });
 }
 
-function fetchProgram(i) {//TODO organize in tables or so and use the pattern to select
+function fetchProgram(i) {
     var i = i || 0;
     if (i >= window.program.length) {
         return S.empty;
@@ -318,7 +316,10 @@ function renameVars(rule) {
                 cdr: treeWalk(term.cdr)
             };
         }
-	console.log("Warning: Unknown term type in renameVars:treeWalk", term, "rule:", rule);
+	console.log("Warning: Unknown term type in renameVars:treeWalk",
+		    term,
+		    "rule:",
+		    rule);
 	return term;
     }
     return {
@@ -433,7 +434,8 @@ function write_bif(/*args*/) {
 	}
 	else {
 	    output("?\n");
-	    console.log("Warning: we can only write out constants so far, you tried to write: ", term);
+	    console.log("Warning: we can only write out"
+			+ " constants so far, you tried to write: ", term);
 	}
     }
     var terms = Array.prototype.slice.call(arguments);
@@ -450,11 +452,13 @@ function unify_bif(p1, p2) {
 }
 
 function sum_bif(variable, a, b) {
-    return extendIfConsistent(variable, {term:"constant", value:a.value + b.value}, this);
+    return extendIfConsistent(variable,
+	{term:"constant", value:a.value + b.value}, this);
 }
 
 function mul_bif(variable, a, b) {
-    return extendIfConsistent(variable, {term:"constant", value:a.value * b.value}, this);
+    return extendIfConsistent(variable,
+	{term:"constant", value:a.value * b.value}, this);
 }
 
 function not_bif(negatedQuery) {
@@ -486,6 +490,6 @@ function lt_bif(a,b) {
 }
 
 function cons_bif(variable, h, t) {
-    return extendIfConsistent(variable, {term:"cons", car:h, cdr:t}, this);
-
+    return extendIfConsistent(variable,
+	{term:"cons", car:h, cdr:t}, this);
 }
