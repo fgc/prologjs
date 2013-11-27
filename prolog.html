@@ -15,6 +15,9 @@
 
       jQuery(function($, undefined) {
           $('#term').terminal(function(queryText, terminal) {
+            if (!window.terminal) {
+              
+            }
             if (queryText !== '') {
                 try {
                     var query = parser.parse(queryText);
@@ -26,6 +29,7 @@
               terminal.echo('');
             }
           }, {
+      onInit: function(terminal) {window.terminal = terminal;},
       greetings: 'Javascript Prolog Interpreter. fgc@usal.es',
       name: 'js_demo',
       height: 300,

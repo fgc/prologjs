@@ -428,10 +428,10 @@ function log(term) {
 function write_bif(/*args*/) {
     function writeTerm(term) {
 	if(term.term == "constant") {
-	    output(term.value, terminal);
+	    output(term.value, window.terminal);
 	}
 	else {
-	    output("?\n",terminal);
+	    output("?\n",window.terminal);
 	    console.log("Warning: we can only write out"
 			+ " constants so far, you tried to write: ", term);
 	}
