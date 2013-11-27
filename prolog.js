@@ -1,10 +1,8 @@
 /******************************/
 //SICProlog implementation
 
-function output(text) {
-    var out = document.getElementById("output");
-    out.value += text;
-    out.scrollTop = out.scrollHeight;
+function output(text, terminal) {
+    terminal.echo(text);
 }
 
 function prettyFrames(queryVars,frameStream) {
@@ -112,26 +110,26 @@ function instantiate(exp, frame) {
     return copy(exp);
 }
 
-function executeQuery(query) {
+function executeQuery(query, terminal) {
     function forcePrint(stream) {
 	if(S.isNull(stream)) {
-	    output("no.\n\n");
+	    output("no.\n\n", terminal);
 	    return;
 	}
-	output(stream.car());
-	forcePrint(stream.cdr());
+	output(stream.car(), terminal);
+	forcePrint(stream.cdr(), terminal);
     }
     var frames = qEval(query[0],S.singleton({}));
     if (!S.isNull(frames)) {
 	var vars = queryVars(query[0]);
 	if (vars.length == 0) {
-	output("true.\n\n");
+	output("true.\n\n", terminal);
 	} else {
         forcePrint(prettyFrames(vars, frames));
 	}
     }
     else {
-	output("no.\n\n");
+	output("no.\n\n",terminal);
     }
 }
 
@@ -430,10 +428,10 @@ function log(term) {
 function write_bif(/*args*/) {
     function writeTerm(term) {
 	if(term.term == "constant") {
-	    output(term.value);
+	    output(term.value, terminal);
 	}
 	else {
-	    output("?\n");
+	    output("?\n",terminal);
 	    console.log("Warning: we can only write out"
 			+ " constants so far, you tried to write: ", term);
 	}

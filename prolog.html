@@ -1,31 +1,47 @@
 <html>
   <head>
-    <script src="streams.js"></script>
+    <script src="jquery-1.7.2.min.js"></script>
+    <script src="jquery.mousewheel-min.js"></script>
+    <script src="jquery.terminal-0.7.8.js"></script>    <script src="streams.js"></script>
     <script src="prolog_parse.js"></script>
     <script src="prolog.js"></script>
+    <link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/cosmic-sans-neue-mono" rel="stylesheet" type="text/css"/>
+    <link href="jquery.terminal.css" rel="stylesheet"/>
     <script>
       function consult() {
         var programText = document.getElementById("program").value;
         program = parser.parse(programText);
       }
 
-      function run() {
-        var queryText = document.getElementById("query").value;
-	output(queryText + "\n");
-        var query = parser.parse(queryText);
-        executeQuery(query);
-      }
+      jQuery(function($, undefined) {
+          $('#term').terminal(function(queryText, terminal) {
+            if (queryText !== '') {
+                try {
+                    var query = parser.parse(queryText);
+                    executeQuery(query,terminal);
+                } catch(e) {
+                  terminal.error(new String(e));
+                }
+            } else {
+              terminal.echo('');
+            }
+          }, {
+      greetings: 'Javascript Prolog Interpreter. fgc@usal.es',
+      name: 'js_demo',
+      height: 300,
+      prompt: '?- '});
+      });
     </script>
     <style>
        #left
         {
-          width: 500px;
+          width: 600px;
           float: left;
         }
     
         #right
         {
-          margin-left: 500px; /* Change this to whatever the width of your left column is*/
+          margin-left: 500px;
         }
     
         .clear
@@ -36,7 +52,7 @@
   </head>
   <body>
     <div id="left">
-      <textarea id="program" cols="80" rows="20">male(adam).
+      <textarea id="program" cols="60" rows="20">male(adam).
 male(abel).
 male(cain).
 female(eve).
@@ -51,9 +67,7 @@ ancestor(X,Y) :- parent(Z,Y),ancestor(X,Z).</textarea>
       <input type="button" value="Consult" onclick="consult();">
     </div>
     <div id="left">
-      <textarea id="output" cols="80" rows="20"></textarea>
-      <input type="text" id="query" value="ancestor(A, enoch)." length="80" size="80">
-      <input type="button" value="Run" onclick="run();">
+      <div id="term" class="terminal" style="height: 300px;"></div>
     <div>
   </body>
 </html>
