@@ -3,6 +3,9 @@
     <script src="jquery-1.7.2.min.js"></script>
     <script src="jquery.mousewheel-min.js"></script>
     <script src="jquery.terminal-0.7.8.js"></script>    <script src="streams.js"></script>
+    <script src="codemirror.js"></script>
+    <link rel="stylesheet" href="codemirror.css">
+    <link rel="stylesheet" href="vibrant-ink.css">
     <script src="prolog_parse.js"></script>
     <script src="prolog.js"></script>
     <link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/cosmic-sans-neue-mono" rel="stylesheet" type="text/css"/>
@@ -14,6 +17,10 @@
       }
 
       jQuery(function($, undefined) {
+          var editor = CodeMirror($('#left')[0],{
+            theme: "vibrant-ink",
+            lineNumbers: true
+          });
           $('#term').terminal(function(queryText, terminal) {
             if (!window.terminal) {
               
@@ -70,7 +77,7 @@ ancestor(X,Y) :- parent(X,Y).
 ancestor(X,Y) :- parent(Z,Y),ancestor(X,Z).</textarea>
       <input type="button" value="Consult" onclick="consult();">
     </div>
-    <div id="left">
+    <div id="right">
       <div id="term" class="terminal" style="height: 300px;"></div>
     <div>
   </body>
