@@ -38,6 +38,10 @@ function prettyList(list, str) {
 function queryVars(query) {
     var varlist = [];
     function treeWalk(term) {
+	if (term.term == "conj" || term.term == "disj") {
+	    term.subterms.forEach(function(t){treeWalk(t);});
+	    return;
+	}
         if (term.term == "variable") {
             varlist.push(term);
 	    return;
@@ -119,9 +123,9 @@ function executeQuery(query, terminal) {
 	output(stream.car(), terminal);
 	forcePrint(stream.cdr(), terminal);
     }
-    var frames = qEval(query[0],S.singleton({}));
+    var frames = qEval(query,S.singleton({}));
     if (!S.isNull(frames)) {
-	var vars = queryVars(query[0]);
+	var vars = queryVars(query);
 	if (vars.length == 0) {
 	output("true.\n\n", terminal);
 	} else {
@@ -134,8 +138,8 @@ function executeQuery(query, terminal) {
 }
 
 function qEval(query, frameStream) {
-    if (query instanceof Array) {
-        return conjoin(query, frameStream);
+    if (query.term == "conj") {
+        return conjoin(query.subterms, frameStream);
     }
     if(query.term == "bif") {
 	return execBif(query,frameStream);
@@ -161,11 +165,19 @@ function simpleQuery(queryPattern, frameStream) {
 
 function conjoin(conjuncts, frameStream) {
     if(conjuncts.length == 0) {
-        return frameStream;
+        return frameStream; //the base case for conjunction is true;
     }
     return conjoin(conjuncts.splice(1), qEval(conjuncts[0],frameStream));
 }
 
+function disjoin(disjuncts, frameStream) { //TODO this doesn't seem to be working
+    if(disjuncts.length == 0) {
+	return S.empty; //the base case for disjunction is false;
+    }
+    return S.interleaveDelayed(qEval(disjuncts[0], frameStream),
+			       function() {return disjoin(disjuncts.splice(1), frameStream);}
+			      );
+}
 
 function findAssertions(pattern, frame) {
     return fetchAssertions().flatMap(function(datum) {
@@ -288,6 +300,18 @@ function renameVars(rule) {
         if (term.term == "constant") {
             return term;
         }
+	if (term.term == "conj") {
+	    return {
+		term: "conj",
+		subterms: term.subterms.map(function(t){return treeWalk(t);})
+	    };
+	}
+	if (term.term == "disj") {
+	    return {
+		term: "disj",
+		subterms: term.subterms.map(function(t){return treeWalk(t);})
+	    };
+	}
         if (term.term == "structure") {
             return {
                 term: "structure",
@@ -323,7 +347,7 @@ function renameVars(rule) {
     return {
         term: "rule",
         head: treeWalk(rule.head),
-        body: rule.body.map(function(t) {return treeWalk(t);})
+        body: treeWalk(rule.body)
     };
 }
 
@@ -490,4 +514,12 @@ function lt_bif(a,b) {
 function cons_bif(variable, h, t) {
     return extendIfConsistent(variable,
 	{term:"cons", car:h, cdr:t}, this);
+}
+
+function fail_bif() {
+    return S.empty;
+}
+
+function true_bif() {
+    return S.singleton(this);
 }

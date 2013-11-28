@@ -14,12 +14,40 @@
     procs[">"] = gt_bif;
     procs["<"] = lt_bif;
     procs["cons"] = cons_bif;
+    procs["."] = cons_bif;
+    procs["fail"] = fail_bif;
+    procs["true"] = true_bif;
 }
 
-program = _ first:assertion rest:(assertion)* _ {
-    return [first].concat(rest);
-}
+program = _ assertions:(assertion)+ {return assertions;}
 
+query = query:termexpr _ "." {return query;}
+
+termexpr = disjunction / "(" _ disjunction:disjunction _ ")" {return disjunction;}
+
+disjunction
+    = head:conjunction tail:(_ ";" _ disjunction)* {
+	if (tail.length == 0) {
+            return head;
+	}
+	return {"term":" disj",
+	       "subterms": [head].concat(tail.map(function(t){return t[3];}))
+	       };
+    }
+
+conjunction
+    = head:base tail:(_ "," _ base)* {
+	if (tail.length == 0) {
+            return head;
+	}
+	return {"term":"conj",
+		"subterms": [head].concat(tail.map(function(t){return t[3];}))
+	       };
+    }
+
+base
+    = term
+    / "(" disjunction:disjunction ")" {return disjunction;}
 
 assertion
     =
@@ -28,24 +56,30 @@ assertion
     }
 
 rule
-    = head:term _ ":-" _ body:termList {
+    = head:term _ ":-" _ body:termexpr {
         return {"term": "rule",
                 "head": head,
                 "body": body};
     }
 
 term
-    = ","* _ b:bifcall {return b;}
-    / ","* _ s:structure {return s;}
-    / ","* _ l:list {return l;}
-    / ","* _ c:constant {return {"term":"constant", "value":c};}
-    / ","* _ v:variable {return {"term":"variable", "name":v};}
+    = _ b:bifcall {return b;}
+    / _ s:structure {return s;}
+    / _ l:list {return l;}
+    / _ c:constant {return {"term":"constant", "value":c};}
+    / _ v:variable {return {"term":"variable", "name":v};}
 
 bifcall
     = _ proc:bif _ "(" _ subterms:termList _ ")" {
         return {"term":"bif", "proc":procs[proc], "args":subterms};
     }
+    / proc:unaryBif {
+	return {"term":"bif", "proc":procs[proc], "args":[]};
+    }
 
+unaryBif
+    = "fail"
+    / "true"
 bif
     = "log"
     / "unify"
@@ -61,15 +95,16 @@ bif
     / "*"
     / ">"
     / "<"
+    / "."
 
 structure
-    = _ functor:constant _ "(" _ subterms:termList _ ")" {
+    = _ functor:constant "(" _ subterms:termList _ ")" {
         return {"term":"structure", "functor":functor, "arity": subterms.length, "subterms":subterms};
     }
 
 termList
-    = first:term rest:(term)* {
-        return [first].concat(rest);
+    = first:term rest:(_ "," term)* {
+        return [first].concat(rest.map(function(t){return t[2];}));
     }
 
 elem
@@ -146,7 +181,7 @@ sqchar
     / ctrlchar
 
 atomchar
-    = [^\|\[\]\.,()'"\\\0-\x1F\x7f]
+    = [^\|\[\]\.,;()'"\\\0-\x1F\x7f]
 
 ctrlchar
      = "\\\\" { return "\\"; }
@@ -158,7 +193,27 @@ ctrlchar
      / "\\t"  { return "\t"; }
 
 whitespace =
-    [ \t\n\r]
+    [ \t\n\r] / Comment
 
 _ = whitespace*
+
+LineTerminator
+  = [\n\r\u2028\u2029]
+
+LineTerminatorSequence "end of line"
+  = "\n"
+  / "\r\n"
+  / "\r"
+  / "\u2028" // line separator
+  / "\u2029" // paragraph separator
+
+Comment "comment"
+  = MultiLineComment
+  / SingleLineComment
+
+MultiLineComment
+  = "/*" (!"*/" .)* "*/"
+
+SingleLineComment
+  = "%" (!LineTerminator .)*
 

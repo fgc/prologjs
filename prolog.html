@@ -12,13 +12,15 @@
     <link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/cosmic-sans-neue-mono" rel="stylesheet" type="text/css"/>
     <link href="jquery.terminal.css" rel="stylesheet"/>
     <script>
+      var editor;
       function consult() {
-        var programText = document.getElementById("program").value;
+        editor.save();
+        var programText = $("#program")[0].value;
         program = parser.parse(programText);
       }
 
       jQuery(function($, undefined) {
-          var editor = CodeMirror($('#left')[0],
+          editor = CodeMirror.fromTextArea($('#program')[0],
             { mode: "prolog"
              ,theme: "vibrant-ink"
              ,lineNumbers: true
@@ -29,7 +31,7 @@
             }
             if (queryText !== '') {
                 try {
-                    var query = parser.parse(queryText);
+                    var query = parser.parse(queryText,{startRule: "query"});
                     executeQuery(query,terminal);
                 } catch(e) {
                   terminal.error(new String(e));
