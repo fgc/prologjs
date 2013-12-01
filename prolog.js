@@ -138,8 +138,13 @@ function executeQuery(query, terminal) {
 }
 
 function qEval(query, frameStream) {
+    console.log(query);
     if (query.term == "conj") {
         return conjoin(query.subterms, frameStream);
+    }
+    if (query.term == "disj") {
+	console.log("ima disjoin");
+        return disjoin(query.subterms, frameStream);
     }
     if(query.term == "bif") {
 	return execBif(query,frameStream);
@@ -171,6 +176,7 @@ function conjoin(conjuncts, frameStream) {
 }
 
 function disjoin(disjuncts, frameStream) { //TODO this doesn't seem to be working
+    console.log(disjuncts);
     if(disjuncts.length == 0) {
 	return S.empty; //the base case for disjunction is false;
     }
