@@ -138,12 +138,10 @@ function executeQuery(query, terminal) {
 }
 
 function qEval(query, frameStream) {
-    console.log(query);
     if (query.term == "conj") {
         return conjoin(query.subterms, frameStream);
     }
     if (query.term == "disj") {
-	console.log("ima disjoin");
         return disjoin(query.subterms, frameStream);
     }
     if(query.term == "bif") {
