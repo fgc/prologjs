@@ -212,56 +212,12 @@ function fetchRules() {
 };
 
 function checkAnAssertion(assertion, queryPattern, queryFrame) {
-    var matchResult = patternMatch(queryPattern, assertion, queryFrame);
+    var matchResult = unifyMatch(queryPattern, assertion, queryFrame);
     if (matchResult == "fail") {
         return S.empty;
     }
     return S.singleton(matchResult);
 }
-
-function patternMatch(pat, dat, frame) {
-    if (frame == "fail") {return "fail";}
-    if (pat.term == "constant"
-       && dat.term == "constant"
-       && pat.value == dat.value) {return frame;}
-    if (pat.term == "variable") {
-        return extendIfConsistent(pat, dat, frame);
-    }
-    if (pat.term == "structure"
-        && dat.term == "structure"
-        && pat.functor == dat.functor
-        && pat.arity == pat.arity) {
-        return pat.subterms.reduce(function(prev, cur, i) {
-            return patternMatch(cur,dat.subterms[i],prev);
-        }, frame);
-    }
-    if (pat.term == "cons"
-        && dat.term == "cons") {
-
-        if (pat.car == "nil"
-            && dat.car == "nil") {
-            return frame;
-        }
-        var carFrame = patternMatch(pat.car,
-                                    dat.car,
-                                    frame);
-        return patternMatch(pat.cdr,
-                            dat.cdr,
-                            carFrame);
-    }
-    return "fail";
-}
-
-function extendIfConsistent(variable, dat, frame) {
-    if(frame[variable.name]) {
-        return patternMatch(frame[variable.name], dat, frame);
-    } else {
-        var newframe = JSON.parse(JSON.stringify(frame)); //UGGG
-        newframe[variable.name] = dat;
-        return newframe;
-    }
-}
-
 
 /*************************************
 Rules and unification
