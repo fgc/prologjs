@@ -173,8 +173,7 @@ function conjoin(conjuncts, frameStream) {
     return conjoin(conjuncts.splice(1), qEval(conjuncts[0],frameStream));
 }
 
-function disjoin(disjuncts, frameStream) { //TODO this doesn't seem to be working
-    console.log(disjuncts);
+function disjoin(disjuncts, frameStream) {
     if(disjuncts.length == 0) {
 	return S.empty; //the base case for disjunction is false;
     }
@@ -212,7 +211,8 @@ function fetchRules() {
 };
 
 function checkAnAssertion(assertion, queryPattern, queryFrame) {
-    var matchResult = unifyMatch(queryPattern, assertion, queryFrame);
+    var cleanAssertion = renameVars(assertion);
+    var matchResult = unifyMatch(queryPattern, cleanAssertion, queryFrame);
     if (matchResult == "fail") {
         return S.empty;
     }
@@ -251,9 +251,16 @@ function applyRule(rule, pattern, frame) {
     return qEval(cleanRule.body, S.singleton(unifyResult));
 }
 
-function renameVars(rule) {
+function renameVars(term) {
     var ruleApplicationId = newRuleApplicationId();
     function treeWalk(term) {
+	if (term.term == "rule") {
+	    return {
+		term: "rule",
+		head: treeWalk(term.head),
+		body: treeWalk(term.body)
+	    };
+	}
         if (term.term == "variable") {
             return makeNewVariable(term, ruleApplicationId);
         }
@@ -304,11 +311,7 @@ function renameVars(rule) {
 		    rule);
 	return term;
     }
-    return {
-        term: "rule",
-        head: treeWalk(rule.head),
-        body: treeWalk(rule.body)
-    };
+    return treeWalk(term);
 }
 
 function unifyMatch(pattern1, pattern2, frame) {
