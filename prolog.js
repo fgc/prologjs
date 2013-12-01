@@ -11,10 +11,10 @@ function prettyFrames(queryVars,frameStream) {
 	    var sep = (i>0)?", ":"";
 	    return str +
 		   sep +
-		   v.name +
+		   v +
 		   " = " +
-		   prettyTerm(instantiate(v,frame));
-	    },"") + ";\n";
+		   prettyTerm(instantiate({term: "variable", name: v},frame));
+	    },"") + ";";
 	});
 }
 
@@ -36,14 +36,14 @@ function prettyList(list, str) {
 }
 
 function queryVars(query) {
-    var varlist = [];
+    var vars = {};
     function treeWalk(term) {
 	if (term.term == "conj" || term.term == "disj") {
 	    term.subterms.forEach(function(t){treeWalk(t);});
 	    return;
 	}
         if (term.term == "variable") {
-            varlist.push(term);
+            vars[term.name] = 1;
 	    return;
         }
         if (term.term == "constant") {
@@ -73,7 +73,7 @@ function queryVars(query) {
 	return;
     }
     treeWalk(query);
-    return varlist;
+    return vars;
 }
 
 function prettyFrame (frame) {
@@ -84,7 +84,7 @@ function prettyFrameStream(frameStream) {
     if (S.isNull(frameStream)) {
         return "true";
     }
-    return prettyFrame(frameStream.car()) + "\n" +
+    return prettyFrame(frameStream.car()) +
 	   prettyFrameStream(frameStream.cdr());
 }
 
@@ -117,7 +117,7 @@ function instantiate(exp, frame) {
 function executeQuery(query, terminal) {
     function forcePrint(stream) {
 	if(S.isNull(stream)) {
-	    output("no.\n\n", terminal);
+	    output("\n", terminal);
 	    return;
 	}
 	output(stream.car(), terminal);
@@ -125,15 +125,15 @@ function executeQuery(query, terminal) {
     }
     var frames = qEval(query,S.singleton({}));
     if (!S.isNull(frames)) {
-	var vars = queryVars(query);
+	var vars = Object.keys(queryVars(query));
 	if (vars.length == 0) {
-	output("true.\n\n", terminal);
+	output("true.\n", terminal);
 	} else {
         forcePrint(prettyFrames(vars, frames));
 	}
     }
     else {
-	output("no.\n\n",terminal);
+	output("false.\n",terminal);
     }
 }
 
@@ -170,7 +170,7 @@ function conjoin(conjuncts, frameStream) {
     if(conjuncts.length == 0) {
         return frameStream; //the base case for conjunction is true;
     }
-    return conjoin(conjuncts.splice(1), qEval(conjuncts[0],frameStream));
+    return conjoin(conjuncts.slice(1), qEval(conjuncts[0],frameStream));
 }
 
 function disjoin(disjuncts, frameStream) {
@@ -178,7 +178,7 @@ function disjoin(disjuncts, frameStream) {
 	return S.empty; //the base case for disjunction is false;
     }
     return S.interleaveDelayed(qEval(disjuncts[0], frameStream),
-			       function() {return disjoin(disjuncts.splice(1), frameStream);}
+			       function() {return disjoin(disjuncts.slice(1), frameStream);}
 			      );
 }
 
