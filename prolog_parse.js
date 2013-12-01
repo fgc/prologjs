@@ -87,7 +87,7 @@ var parser = (function() {
         	if (tail.length == 0) {
                     return head;
         	}
-        	return {"term":" disj",
+        	return {"term": "disj",
         	       "subterms": [head].concat(tail.map(function(t){return t[3];}))
         	       };
             },
