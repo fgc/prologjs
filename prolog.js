@@ -248,6 +248,7 @@ function applyRule(rule, pattern, frame) {
     if (unifyResult == "fail") {
         return S.empty;
     }
+    console.log("URES:", unifyResult);
     return qEval(cleanRule.body, S.singleton(unifyResult));
 }
 
@@ -315,6 +316,7 @@ function renameVars(term) {
 }
 
 function unifyMatch(pattern1, pattern2, frame) {
+    console.log("uma",pattern1,pattern2, frame);
     if (frame == "fail") {
         return "fail";
     }
@@ -343,9 +345,6 @@ function unifyMatch(pattern1, pattern2, frame) {
             return unifyMatch(cur,pattern2.subterms[i],prev);
         }, frame);
     }
-    if (pattern1.term == "bif") {
-	return unifyMatch();
-    }
     if (pattern1.term == "cons"
         && pattern2.term == "cons") {
         if (pattern1.car == "nil" && pattern2.car == "nil") {
@@ -371,9 +370,12 @@ function extendIfPossible(variable, value, frame) {
     if (dependsOn(value, variable, frame)) {
         return "fail";
     }
-
+    console.log("oldframe: ", frame);
     var newframe = JSON.parse(JSON.stringify(frame)); //UGGG
+    console.log("newframe: ", newframe);
+    console.log("value: ", value);
     newframe[variable.name] = value;
+    console.log("newframe extended: ", newframe);
     return newframe;
 }
 
@@ -437,12 +439,12 @@ function unify_bif(p1, p2) {
 }
 
 function sum_bif(variable, a, b) {
-    return extendIfConsistent(variable,
+    return extendIfPossible(variable,
 	{term:"constant", value:a.value + b.value}, this);
 }
 
 function mul_bif(variable, a, b) {
-    return extendIfConsistent(variable,
+    return extendIfPossible(variable,
 	{term:"constant", value:a.value * b.value}, this);
 }
 
@@ -475,7 +477,7 @@ function lt_bif(a,b) {
 }
 
 function cons_bif(variable, h, t) {
-    return extendIfConsistent(variable,
+    return extendIfPossible(variable,
 	{term:"cons", car:h, cdr:t}, this);
 }
 
@@ -485,4 +487,8 @@ function fail_bif() {
 
 function true_bif() {
     return S.singleton(this);
+}
+
+function call_bif(term) {
+    return qEval(term,S.singleton(this));
 }

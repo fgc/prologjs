@@ -1,3 +1,4 @@
+// -*- mode: javascript -*-
 {
     var procs = {};
     procs["log"] = log;
@@ -17,6 +18,7 @@
     procs["."] = cons_bif;
     procs["fail"] = fail_bif;
     procs["true"] = true_bif;
+    procs["call"] = call_bif;
 }
 
 program = _ assertions:(assertion)+ {return assertions;}
@@ -65,6 +67,7 @@ rule
 term
     = _ b:bifcall {return b;}
     / _ s:structure {return s;}
+    / _ cr:curly {return cr;}
     / _ l:list {return l;}
     / _ c:constant {return {"term":"constant", "value":c};}
     / _ v:variable {return {"term":"variable", "name":v};}
@@ -84,6 +87,7 @@ bif
     = "log"
     / "unify"
     / "write"
+    / "call"
     / "sum"
     / "mul"
     / "not"
@@ -99,24 +103,32 @@ bif
 
 structure
     = _ functor:constant "(" _ subterms:termList _ ")" {
-        return {"term":"structure", "functor":functor, "arity": subterms.length, "subterms":subterms};
+        return {"term":"structure", 
+		"functor":functor, 
+		"arity": subterms.length, 
+		"subterms":subterms
+	       };
     }
 
 termList
-    = first:term rest:(_ "," term)* {
+    = first:base rest:(_ "," base)* {
         return [first].concat(rest.map(function(t){return t[2];}));
     }
 
-elem
-    = ","* _ c:constant {return {"term":"constant", "value":c};}
-    / ","* _ v:variable {return {"term":"variable", "name":v};}    
-    / ","* _ l:list{return l;}
+curly
+    = _ "{" _ subterms:termList _ "}" {
+	return {"term":"structure", 
+		"functor":"{}", 
+		"arity": subterms.length, 
+		"subterms":subterms
+	       };
+    }
 
 tail = "|" _ v:variable {return {"term":"variable", "name":v};}
 list
     = _ "[]" {return {"term":"cons", "car":"nil"};}
 
-    / _ "[" _ head:elem _ rest:(elem)* _ tail:(tail)?"]" {
+    / _ "[" _ head:base _ rest:("," _ base)* _ tail:(tail)? _"]" {
         function consify(elems,tail) {
             if (elems.length == 0) {
 		if(tail == "") {
@@ -132,8 +144,9 @@ list
                 "cdr": consify(elems.slice(1),tail)
                };
 	}
-
-return consify([head].concat(rest), tail);
+	return consify([head].concat(rest.map(function(t){
+	    return t[2];
+	})), tail || "");
 }
 
 constant
@@ -164,7 +177,10 @@ upperCaseLetter
     = [A-Z] / "_"
 
 integer
-    = neg:("-")? digits:digit+ {return parseInt(neg + digits.join(""));}
+    = neg:("-")? digits:digit+ {
+	var neg = neg|"";
+	return parseInt(neg + digits.join(""));
+    }
 digit
     = [0-9]
 
@@ -181,7 +197,7 @@ sqchar
     / ctrlchar
 
 atomchar
-    = [^\|\[\]\.,;()'"\\\0-\x1F\x7f]
+    = [^\|\[\]\.,;(){}'"\\\0-\x1F\x7f]
 
 ctrlchar
      = "\\\\" { return "\\"; }
