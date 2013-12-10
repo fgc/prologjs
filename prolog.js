@@ -23,6 +23,9 @@ function prettyTerm(term) {
 	return term.value;
     }
     if (term.term == "cons") {
+	if (term.car == "nil") {
+	    return "[]";
+	}
 	return prettyList(term, "[");
     }
     return JSON.stringify(term);
